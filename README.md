@@ -16,7 +16,7 @@ Para que o sistema funcione corretamente, é necessário configurar a conexão c
 
 **Passos para configurar a conexão:**
 
-# 1. Acesse `agendamento.dao.Connection` no seu projeto
+# 1. Acesse `projeto16.dao.Connection` no seu projeto
 
 # 2. Clique com o botão direito no componente `tfdConnection` (Connection)
 
