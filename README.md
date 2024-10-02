@@ -55,7 +55,7 @@ CREATE TABLE dispositivosconnected (
 );
 ```
 
-# Agora o codigo para criar a Trigger para alterar o email na table dispositivo quando o email na table login for alterado
+# Agora o codigo para criar a Trigger no banco Postgres para alterar o email na table dispositivo quando o email na table login for alterado
 
 ```Bash
 CREATE OR REPLACE FUNCTION update_email_dispositivos()
