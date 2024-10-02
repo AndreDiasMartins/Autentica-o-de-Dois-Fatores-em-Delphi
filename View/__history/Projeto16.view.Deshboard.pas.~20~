@@ -1,0 +1,46 @@
+unit Projeto16.view.Deshboard;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TDeshoboard = class(TForm)
+    Label1: TLabel;
+   strict private
+    { Private declarations }
+    class var Finstance: TDeshoboard;
+  public
+    { Public declarations }
+    class function GetInstance: TDeshoboard;
+    class procedure ReleaseInstance;
+  end;
+
+var
+  Deshoboard: TDeshoboard;
+
+implementation
+{$R *.dfm}
+{ TDeshoboard }
+
+class function TDeshoboard.GetInstance: TDeshoboard;
+begin
+  if not Assigned(Finstance) then
+    FInstance := TDeshoboard.Create(nil);
+  Result := FInstance;
+
+end;
+class procedure TDeshoboard.ReleaseInstance;
+begin
+    if Assigned(Finstance) then
+      FreeAndNil(Finstance);
+end;
+
+initialization
+
+finalization
+TDeshoboard.ReleaseInstance;
+
+end.

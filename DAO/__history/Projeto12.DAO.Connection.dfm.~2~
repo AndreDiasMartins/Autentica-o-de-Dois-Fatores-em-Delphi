@@ -1,0 +1,43 @@
+object DAO: TDAO
+  Height = 410
+  Width = 619
+  object Connection: TFDConnection
+    Params.Strings = (
+      'Database=Dbandre'
+      'User_Name=postgres'
+      'Password=postgres'
+      'Server=localhost'
+      'DriverID=pG')
+    Connected = True
+    LoginPrompt = False
+    Left = 64
+    Top = 32
+  end
+  object fdQuery: TFDQuery
+    Connection = Connection
+    SQL.Strings = (
+      'select * from login')
+    Left = 176
+    Top = 32
+    object fdQueryid: TIntegerField
+      FieldName = 'id'
+      Origin = 'id'
+      ProviderFlags = [pfInUpdate, pfInWhere, pfInKey]
+    end
+    object fdQuerylogin: TWideStringField
+      FieldName = 'login'
+      Origin = '"login"'
+      Size = 50
+    end
+    object fdQuerysenha: TWideStringField
+      FieldName = 'senha'
+      Origin = 'senha'
+      Size = 255
+    end
+  end
+  object FDPhysPgDriverLink1: TFDPhysPgDriverLink
+    VendorLib = 'C:\Fontes\Projeto4\Win32\Debug\libpq.dll'
+    Left = 64
+    Top = 176
+  end
+end

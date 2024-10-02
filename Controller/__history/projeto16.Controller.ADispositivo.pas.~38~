@@ -1,0 +1,125 @@
+unit projeto16.Controller.ADispositivo;
+
+interface
+
+type
+  TDispositivoExtract = class
+  strict private
+    class var FInstance: TDispositivoExtract;
+  public
+    class function GetInstance: TDispositivoExtract;
+    class procedure ReleaseInstance;
+    Function Execute(var values: Array of String; out StrErr: String): Boolean;
+    function Cmd(const ACommand: string): String;
+    function Hostname: string;
+  end;
+
+implementation
+
+uses
+  System.SysUtils, Winapi.Windows, System.Classes;
+
+{ TDispositivoExtract }
+
+function TDispositivoExtract.Hostname: string;
+var
+  Buffer: array [0 .. MAX_COMPUTERNAME_LENGTH] of Char;
+  Size: DWORD;
+begin
+  Size := Length(Buffer);
+  if GetComputerName(Buffer, Size) then
+    Result := Buffer
+  else
+    Result := '';
+end;
+
+function TDispositivoExtract.Cmd(const ACommand: string): String;
+var
+  SecurityAttributes: TSecurityAttributes;
+  OutputRead, OutputWrite: THandle;
+  StartupInfo: TStartupInfo;
+  ProcessInfo: TProcessInformation;
+  Buffer: array [0 .. 4095] of AnsiChar;
+  BytesRead: DWORD;
+  ResultString: TStringStream;
+begin
+  ResultString := TStringStream.Create('', TEncoding.ANSI);
+  try
+    // Set up security attributes.
+    SecurityAttributes.nLength := SizeOf(TSecurityAttributes);
+    SecurityAttributes.bInheritHandle := True;
+    SecurityAttributes.lpSecurityDescriptor := nil;
+    // Create a pipe for the child process's STDOUT.
+    if not CreatePipe(OutputRead, OutputWrite, @SecurityAttributes, 0) then
+      RaiseLastOSError;
+    // Ensure the read handle to the pipe for STDOUT is not inherited.
+    if not SetHandleInformation(OutputRead, HANDLE_FLAG_INHERIT, 0) then
+      RaiseLastOSError;
+    // Set up the startup information structure.
+    FillChar(StartupInfo, SizeOf(StartupInfo), 0);
+    StartupInfo.cb := SizeOf(StartupInfo);
+    StartupInfo.dwFlags := STARTF_USESTDHANDLES;
+    StartupInfo.hStdOutput := OutputWrite;
+    StartupInfo.hStdError := OutputWrite;
+    StartupInfo.hStdInput := GetStdHandle(STD_INPUT_HANDLE);
+    // Create the child process.
+    if not CreateProcess(nil, PChar('cmd.exe /C ' + ACommand), nil, nil, True, 0, nil, nil, StartupInfo, ProcessInfo) then
+      RaiseLastOSError;
+    // Close the write end of the pipe before reading from the read end of the pipe.
+    CloseHandle(OutputWrite);
+    // Read the output from the pipe.
+    try
+      while ReadFile(OutputRead, Buffer, SizeOf(Buffer) - 1, BytesRead, nil) and (BytesRead > 0) do
+      begin
+        Buffer[BytesRead] := #0;
+        ResultString.WriteString(Buffer);
+      end;
+    finally
+      CloseHandle(OutputRead);
+    end;
+    // Wait until child process exits.
+    WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+    // Close process and thread handles.
+    CloseHandle(ProcessInfo.hProcess);
+    CloseHandle(ProcessInfo.hThread);
+    // Return the result.
+    Result := ResultString.DataString;
+  finally
+    ResultString.Free;
+  end;
+end;
+
+function TDispositivoExtract.Execute(var values: Array of String; out StrErr: String): Boolean;
+begin
+  try
+    StrErr:= 'Não foi possivel obter valores do Dispositivo!'
+    SetLength(Result, 2);
+    values[0] := Hostname;
+    values[1] := Cmd('wmic os get Caption, OSArchitecture | findstr /R /V "^$" | findstr /V "Caption"');
+
+    StrErr := '';
+    result:= True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + E.Message;
+      result:= false;
+    end;
+
+  end;
+end;
+
+class function TDispositivoExtract.GetInstance: TDispositivoExtract;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TDispositivoExtract.Create;
+  Result := FInstance;
+end;
+
+class procedure TDispositivoExtract.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    FreeAndNil(FInstance);
+end;
+
+end.

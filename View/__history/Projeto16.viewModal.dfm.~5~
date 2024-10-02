@@ -1,0 +1,80 @@
+object modal2f: Tmodal2f
+  Left = 0
+  Top = 0
+  Caption = 'modal2f'
+  ClientHeight = 426
+  ClientWidth = 624
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  TextHeight = 15
+  object TLabel
+    Left = 152
+    Top = 88
+    Width = 311
+    Height = 32
+    Caption = 'Insira o Token de valida'#231#227'o'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -24
+    Font.Name = 'Segoe UI'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object num1: TDBEdit
+    Left = 160
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 0
+    OnKeyPress = num1KeyPress
+  end
+  object num2: TDBEdit
+    Left = 207
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 1
+    OnKeyPress = num2KeyPress
+  end
+  object num3: TDBEdit
+    Left = 254
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 2
+    OnKeyPress = num3KeyPress
+  end
+  object num4: TDBEdit
+    Left = 301
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 3
+  end
+  object num5: TDBEdit
+    Left = 348
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 4
+  end
+  object num6: TDBEdit
+    Left = 395
+    Top = 168
+    Width = 41
+    Height = 49
+    TabOrder = 5
+  end
+  object validar: TButton
+    Left = 207
+    Top = 248
+    Width = 182
+    Height = 42
+    Caption = 'validar'
+    TabOrder = 6
+  end
+end

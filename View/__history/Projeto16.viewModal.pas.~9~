@@ -1,0 +1,79 @@
+unit Projeto16.viewModal;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Mask, Vcl.ExtCtrls,
+  Vcl.DBCtrls;
+
+type
+  Tmodal2f = class(TForm)
+    num1: TDBEdit;
+    num2: TDBEdit;
+    num3: TDBEdit;
+    num4: TDBEdit;
+    num5: TDBEdit;
+    num6: TDBEdit;
+    validar: TButton;
+    procedure num1KeyPress(Sender: TObject; var Key: Char);
+    procedure num2KeyPress(Sender: TObject; var Key: Char);
+    procedure num3KeyPress(Sender: TObject; var Key: Char);
+    procedure num4KeyPress(Sender: TObject; var Key: Char);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  modal2f: Tmodal2f;
+
+implementation
+
+{$R *.dfm}
+
+procedure Tmodal2f.num1KeyPress(Sender: TObject; var Key: Char);
+begin
+  // Permite apenas números de 0 a 9 e a tecla Backspace
+  if not (Key in ['0'..'9', #8]) then
+    Key := #0; // Ignora qualquer outro caractere
+
+  // Permite apenas um único dígito
+  if (Length(num1.Text) >= 1) and (Key <> #8) then
+    Key := #0; // Impede a inserção de mais de um dígito
+end;
+
+procedure Tmodal2f.num2KeyPress(Sender: TObject; var Key: Char);
+begin
+  // Permite apenas números de 0 a 9 e a tecla Backspace
+  if not (Key in ['0'..'9', #8]) then
+    Key := #0; // Ignora qualquer outro caractere
+
+  // Permite apenas um único dígito
+  if (Length(num2.Text) >= 1) and (Key <> #8) then
+    Key := #0; // Impede a inserção de mais de um dígito
+end;
+procedure Tmodal2f.num3KeyPress(Sender: TObject; var Key: Char);
+begin
+  // Permite apenas números de 0 a 9 e a tecla Backspace
+  if not (Key in ['0'..'9', #8]) then
+    Key := #0; // Ignora qualquer outro caractere
+
+  // Permite apenas um único dígito
+  if (Length(num3.Text) >= 1) and (Key <> #8) then
+    Key := #0; // Impede a inserção de mais de um dígito
+end;
+procedure Tmodal2f.num4KeyPress(Sender: TObject; var Key: Char);
+begin
+  // Permite apenas números de 0 a 9 e a tecla Backspace
+  if not (Key in ['0'..'9', #8]) then
+    Key := #0; // Ignora qualquer outro caractere
+
+  // Permite apenas um único dígito
+  if (Length(num4.Text) >= 1) and (Key <> #8) then
+    Key := #0; // Impede a inserção de mais de um dígito
+end;
+
+
+end.

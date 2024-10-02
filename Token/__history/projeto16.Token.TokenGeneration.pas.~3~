@@ -1,0 +1,29 @@
+unit projeto16.Token.TokenGeneration;
+
+interface
+
+uses
+  System.SysUtils;
+
+function GenerateToken: string;
+
+implementation
+
+function GenerateToken: string;
+const
+  Characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+var
+  i: Integer;
+  Token: string;
+begin
+  Randomize;  // Inicializa o gerador de números aleatórios
+  Token := '';
+  for i := 1 to 6 do
+  begin
+    Token := Token + Characters[Random(Length(Characters)) + 1];
+  end;
+  Result := Token;
+end;
+
+end.
+

@@ -1,0 +1,90 @@
+unit Projeto16.view.Modal2F;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Mask, Vcl.ExtCtrls, Vcl.DBCtrls;
+
+type
+  TModal2F = class(TForm)
+    validar: TButton;
+    MaskEdit1: TMaskEdit;
+    Cancelar: TButton;
+    procedure validarClick(Sender: TObject);
+    procedure CancelarClick(Sender: TObject);
+  strict private
+    class var FInstance: TModal2F;
+  private
+    FToken: string;
+  public
+    class function GetInstance: TModal2F;
+    class procedure ReleaseInstance;
+
+    function Execute(Token: String; out StrErr: String): Boolean;
+  end;
+
+var
+  Modal2F: TModal2F;
+
+implementation
+
+{$R *.dfm}
+{ TModal2F }
+
+procedure TModal2F.CancelarClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
+function TModal2F.Execute(Token: String; out StrErr: String): Boolean;
+begin
+  try
+    FToken := Token;
+
+    StrErr := 'Operação Abortada!';
+    if ShowModal = mrCancel then
+      abort;
+
+    StrErr := '';
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+class function TModal2F.GetInstance: TModal2F;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TModal2F.Create(nil);
+  Result := FInstance;
+end;
+
+class procedure TModal2F.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    FreeAndNil(FInstance);
+end;
+
+procedure TModal2F.validarClick(Sender: TObject);
+var
+  StrErr: string;
+begin
+  try
+    StrErr := '';
+    if FToken <> MaskEdit1.Text then
+      abort;
+    ModalResult := mrOk;
+  except
+    ShowMessage(StrErr);
+    ModalResult := mrNone;
+  end;
+end;
+
+initialization
+
+finalization
+
+TModal2F.ReleaseInstance;
+
+end.

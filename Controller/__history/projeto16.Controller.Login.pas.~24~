@@ -1,0 +1,119 @@
+unit projeto16.Controller.Login;
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, Projeto14.comuns.Types, projeto16.Model.Login, projeto16.DAO.Login;
+
+type
+
+  TLoginController = class
+  strict private
+    class var FInstance: TLoginController;
+  private
+    FLoginModel: TLoginModel;
+    FLoginDAO: TLoginDAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    class function GetInstance: TLoginController;
+    class procedure ReleaseInstance;
+
+    function Open(var Query: TFDMemTable; AParams: Array of variant; out StrErr: string): Boolean;
+    function OpenUser(var Query: TFDMemTable; Login: String; Password: String; out StrErr: string): Boolean;
+    function ValidEmail(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function New(out StrErr: string): Boolean;
+    function Edit(Id: Integer; out StrErr: string): Boolean;
+    function Delete(Id: Integer; out StrErr: string): Boolean;
+    function Post(out StrErr: string): Boolean;
+    function Upsert(out StrErr: string): Boolean;
+    function Report(var Query: TFDMemTable; AReport: Integer; AParams: Array of variant; out StrErr: string): Boolean;
+
+    property LoginModel: TLoginModel read FLoginModel write FLoginModel;
+  end;
+
+implementation
+
+{ TLoginController }
+
+constructor TLoginController.Create;
+begin
+  FLoginModel := TLoginModel.Create;
+  FLoginDAO := TLoginDAO.Create;
+end;
+
+destructor TLoginController.Destroy;
+begin
+  FreeAndNil(FLoginDAO);
+  FreeAndNil(FLoginModel);
+
+  inherited;
+end;
+
+class function TLoginController.GetInstance: TLoginController;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TLoginController.Create;
+  Result := FInstance;
+end;
+
+class procedure TLoginController.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    FInstance.Free;
+end;
+
+function TLoginController.Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Open(Query, AParams, StrErr);
+end;
+
+function TLoginController.OpenUser(var Query: TFDMemTable; Login: String; Password: String; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.OpenUser(Query, Login, Password, StrErr);
+end;
+
+function TLoginController.New(out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.New(FLoginModel, StrErr);
+end;
+
+function TLoginController.Edit(Id: Integer; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Edit(Id, FLoginModel, StrErr);
+end;
+
+function TLoginController.Delete(Id: Integer; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Delete(Id, StrErr);
+end;
+
+function TLoginController.Post(out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Post(FLoginModel, StrErr);
+end;
+
+function TLoginController.Upsert(out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Upsert(FLoginModel, StrErr);
+end;
+
+function TLoginController.ValidEmail(var Query: TFDMemTable;
+  AParams: array of variant; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.validEmail(Query, AParams, StrErr);
+end;
+
+function TLoginController.Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  Result := FLoginDAO.Report(Query, AReport, AParams, StrErr);
+end;
+
+initialization
+
+finalization
+
+TLoginController.ReleaseInstance;
+
+end.

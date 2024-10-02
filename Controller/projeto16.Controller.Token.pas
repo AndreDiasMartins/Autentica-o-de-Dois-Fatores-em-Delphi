@@ -1,0 +1,54 @@
+unit projeto16.Controller.Token;
+
+interface
+
+uses
+  System.SysUtils, System.Classes;
+
+type
+  TTokenController = class
+  strict private
+    class var FInstance: TTokenController;
+  public
+    class function GetInstance: TTokenController;
+    class procedure ReleaseInstance;
+
+    function Execute: string;
+  end;
+
+implementation
+
+{ TTokenGenerator }
+
+class function TTokenController.GetInstance: TTokenController;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TTokenController.Create;
+  Result := FInstance;
+end;
+
+class procedure TTokenController.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    FreeAndNil(FInstance);
+end;
+
+function TTokenController.Execute: string;
+const
+  ACharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+var
+  i: Integer;
+begin
+  Randomize;
+  Result := '';
+  for i := 1 to 6 do
+    Result := Result + ACharacters[Random(Length(ACharacters)) + 1];
+end;
+
+initialization
+
+finalization
+
+TTokenController.ReleaseInstance;
+
+end.

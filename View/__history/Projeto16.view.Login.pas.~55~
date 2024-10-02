@@ -1,0 +1,178 @@
+unit Projeto16.view.Login;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.StdCtrls, Vcl.Mask,
+  Vcl.ExtCtrls, Vcl.DBCtrls;
+
+type
+  TfLogin = class(TForm)
+    DBEdit1: TDBEdit;
+    ButtonLogin: TButton;
+    Label1: TLabel;
+    DBEdit2: TDBEdit;
+    dsUser: TDataSource;
+    qUser: TFDMemTable;
+    qUserid: TIntegerField;
+    qUserlogin: TWideStringField;
+    qUsersenha: TWideStringField;
+    Query: TFDMemTable;
+    Queryid: TIntegerField;
+    Querylogin: TWideStringField;
+    Querysenha: TWideStringField;
+    dsQuery: TDataSource;
+    QDispConected: TFDMemTable;
+    dsDisp: TDataSource;
+    QDispConectedid: TIntegerField;
+    QDispConectedhostname: TWideStringField;
+    QDispConectedsistema_operacional_arq: TWideStringField;
+    QDispConectediduser: TIntegerField;
+    QDispConectedemail: TWideStringField;
+    CheckBox1: TCheckBox;
+    procedure ButtonLoginClick(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
+  strict private
+    class var FInstance: TfLogin;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+
+    class function GetInstance: TfLogin;
+    class procedure ReleaseInstance;
+
+    function Execute(out StrErr: string): Boolean;
+  end;
+
+var
+  fLogin: TfLogin;
+
+implementation
+
+uses
+  Projeto16.Controller.Login, Projeto16.Controller.Token,
+  Projeto16.view.Modal2F, Projeto16.Controller.SendMail,
+  Projeto16.view.Dashboard, Projeto16.Controller.ADispositivo,
+  Projeto16.Controller.DispositivoConected, Vcl.Dialogs;
+
+{$R *.dfm}
+
+procedure TfLogin.ButtonLoginClick(Sender: TObject);
+var
+  AText: string;
+  AToken: String;
+  StrErr: string;
+  Avalues: Array of String;
+begin
+  try
+
+    AText := '';
+    if Querylogin.AsString.IsEmpty then
+      AText := AText + 'Informe o login do usuário.' + sLinebreak;
+    if Querysenha.AsString.IsEmpty then
+      AText := AText + 'Informe a senha do usuário.' + sLinebreak;
+
+    StrErr := AText;
+    if not StrErr.IsEmpty then
+      Abort;
+
+    if not TLoginController.GetInstance.OpenUser(qUser, Querylogin.AsString, Querysenha.AsString, StrErr) then
+      Abort;
+
+    StrErr := 'Login ou senha inválidos.';
+    if (Querylogin.AsString <> qUserlogin.AsString) or (Querysenha.AsString <> qUsersenha.AsString) then
+      Abort;
+
+    SetLength(Avalues, 2);
+    if not TDispositivoExtract.GetInstance.Execute(Avalues, StrErr) then
+      Abort;
+
+    if not TDispositivoConectedController.GetInstance.ValidDisp(QDispConected, [qUserid.AsInteger, Avalues[0], Avalues[1], qUserlogin.AsString], StrErr) then
+      Abort;
+
+    if QDispConected.RecordCount = 0 then
+    begin
+
+      AToken := TTokenController.GetInstance.Execute;
+
+      if not TSendMailController.GetInstance.Execute('contato@agilsistemas.inf.br', 'Codigo 2f', AToken, StrErr) then
+        Abort;
+
+      if not TfModal2F.GetInstance.Execute(AToken, StrErr) then
+        Abort;
+
+      if not TDispositivoConectedController.GetInstance.New(StrErr) then
+        Abort;
+
+      with TDispositivoConectedController.GetInstance.DispositivoConectedModel do
+      begin
+        Hostname := Avalues[0];
+        Sistema_operacional_arq := Avalues[1];
+        Iduser := qUserid.AsInteger;
+        Email := qUserlogin.AsString;
+      end;
+
+      if not TDispositivoConectedController.GetInstance.Post(StrErr) then
+        Abort;
+    end;
+    StrErr := '';
+    ModalResult := mrOk;
+  except
+    ShowMessage(StrErr);
+    ModalResult := mrNone;
+  end;
+end;
+
+procedure TfLogin.CheckBox1Click(Sender: TObject);
+begin
+
+  if CheckBox1.Checked then
+    DBEdit2.PasswordChar := #0
+  else
+    DBEdit2.PasswordChar :='*';
+
+end;
+
+function TfLogin.Execute(out StrErr: string): Boolean;
+begin
+  try
+    Query.Close;
+    Query.CreateDataSet;
+    Query.Append;
+
+    if ShowModal <> mrOk then
+      Abort;
+
+    StrErr := '';
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
+class function TfLogin.GetInstance: TfLogin;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TfLogin.Create(nil);
+  Result := FInstance;
+end;
+
+class procedure TfLogin.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    FreeAndNil(FInstance);
+
+end;
+
+initialization
+
+finalization
+
+TfLogin.ReleaseInstance;
+
+end.

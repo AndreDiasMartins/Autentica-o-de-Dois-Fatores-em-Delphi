@@ -1,0 +1,71 @@
+unit projeto16.Model.Tokens;
+
+interface
+
+uses
+  Dialogs;
+
+type
+  TTokensModel = class
+  private
+    FToken: string;
+    FIduser: Integer;
+    FData_criacao: TDateTime;
+    FData_exp: TDateTime;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property TOKEN: string read FToken write FToken;
+    property Iduser: Integer read FIduser write FIduser;
+    property Data_criacao: TDateTime read FData_criacao write FData_criacao;
+    property Data_exp: TDateTime read FData_exp write FData_exp;
+  end;
+
+implementation
+
+{ TTokensModel }
+
+constructor TTokensModel.Create;
+begin
+
+end;
+
+destructor TTokensModel.Destroy;
+begin
+
+  inherited;
+end;
+
+end.
+
+// with FTokensController.TokensModel do
+// begin
+// QUERYtoken.AsString:= Token;
+// QUERYiduser.AsInteger:= Iduser;
+// QUERYdata_criacao.AsString:= Data_criacao;
+// QUERYdata_exp.AsString:= Data_exp;
+// end;
+
+// with FTokensController.TokensModel do
+// begin
+// Token:= QUERYtoken.AsString;
+// Iduser:= QUERYiduser.AsInteger;
+// Data_criacao:= QUERYdata_criacao.AsString;
+// Data_exp:= QUERYdata_exp.AsString;
+// end;
+
+// if not FTokensController.New(StrErr) then
+// Abort;
+
+// if not FTokensController.Edit(token, StrErr) then
+// Abort;
+
+// if not FTokensController.Delete(token, StrErr) then
+// Abort;
+
+// if not FTokensController.Post(StrErr) then
+// Abort;
+
+// if not FTokensController.Open(Query, [], StrErr) then
+// Abort;

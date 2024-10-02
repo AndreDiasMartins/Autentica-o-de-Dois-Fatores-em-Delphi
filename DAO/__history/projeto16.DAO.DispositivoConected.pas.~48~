@@ -1,0 +1,318 @@
+unit projeto16.DAO.DispositivoConected;
+
+interface
+
+uses
+  projeto16.Model.DispositivoConected, projeto16.DAO.Connection, Projeto14.comuns.Types, FireDAC.Comp.Client, System.SysUtils, dialogs, System.Classes;
+
+const
+  acmModulo = '';
+
+type
+
+  TDispositivoConectedDAO = class
+
+  private
+    FSQL: TStringList;
+    FInsertUpdate: TInsertUpdate;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function ValidDisp(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function ValidEmail(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function New(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+    function Edit(Id: Integer; var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+    function Delete(Id: Integer; out StrErr: string): Boolean;
+    function Post(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+    function Upsert(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+    function Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+  end;
+
+implementation
+
+{ TDispositivoConectedDAO }
+
+constructor TDispositivoConectedDAO.Create;
+begin
+  FSQL := TStringList.Create;
+  FInsertUpdate := TInsertUpdate.iuNone;
+end;
+
+destructor TDispositivoConectedDAO.Destroy;
+begin
+  FreeAndNil(FSQL);
+
+  inherited;
+end;
+
+function TDispositivoConectedDAO.Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[DispositivoConected]: Impossível abrir query.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, hostname, sistema_operacional_arq, iduser, email ');
+    FSQL.Add('FROM dispositivosconnected ');
+    FSQL.Add('WHERE Cast(id as text) like :id');
+
+    TDAO.GetInstance.FDQuery1.Close;
+    TDAO.GetInstance.FDQuery1.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[DispositivoConected]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery1);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TDispositivoConectedDAO.New(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+begin
+  R.Id := 0;
+  R.Hostname := '';
+  R.Sistema_operacional_arq := '';
+  R.Iduser := 0;
+
+  FInsertUpdate := TInsertUpdate.iuInsert;
+  Result := True;
+end;
+
+function TDispositivoConectedDAO.Edit(Id: Integer; var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+begin
+  FInsertUpdate := TInsertUpdate.iuUpdate;
+  StrErr := '';
+  try
+    StrErr := 'DAO[DispositivoConected]: Não foi possível editar.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, hostname, sistema_operacional_arq, iduser ');
+    FSQL.Add('FROM dispositivosconnected ');
+    FSQL.Add('WHERE id=:id ');
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, [Id]);
+
+    StrErr := 'DAO[DispositivoConected]: Registro não encontrado.';
+    if TDAO.GetInstance.FDQuery.RecordCount = 0 then
+      Abort;
+
+    StrErr := 'DAO[DispositivoConected]: Falha ao retornar campos.';
+    R.Id := TDAO.GetInstance.FDQuery.Fields[0].AsInteger;
+    R.Hostname := TDAO.GetInstance.FDQuery.Fields[1].AsString;
+    R.Sistema_operacional_arq := TDAO.GetInstance.FDQuery.Fields[2].AsString;
+    R.Iduser := TDAO.GetInstance.FDQuery.Fields[3].AsInteger;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+
+end;
+
+function TDispositivoConectedDAO.Delete(Id: Integer; out StrErr: string): Boolean;
+var
+  AText: string;
+begin
+  TDAO.GetInstance.Connection.StartTransaction;
+  try
+    StrErr := 'DAO[DispositivoConected]: Falha ao executar SQL.';
+    FSQL.Clear;
+    FSQL.Add('DELETE FROM dispositivosconnected ');
+    FSQL.Add('WHERE id=:id ');
+    TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [Id]);
+
+    StrErr := 'DAO[DispositivoConected]: Falha ao concluir transação.';
+    TDAO.GetInstance.Connection.Commit;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+
+end;
+
+function TDispositivoConectedDAO.Post(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+var
+  AText: string;
+begin
+  TDAO.GetInstance.Connection.StartTransaction;
+  try
+    case FInsertUpdate of
+
+      TInsertUpdate.iuInsert:
+        begin
+          StrErr := 'DAO[DispositivoConected]: Falha ao incluir registro.';
+          FSQL.Clear;
+          FSQL.Add('INSERT INTO dispositivosconnected (hostname, sistema_operacional_arq, iduser, email) ');
+          FSQL.Add('VALUES (:hostname, :sistema_operacional_arq, :iduser, :email) ');
+          TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [R.Hostname, R.Sistema_operacional_arq, R.Iduser, R.Email]);
+        end;
+
+      TInsertUpdate.iuUpdate:
+        begin
+          StrErr := 'DAO[DispositivoConected]: Falha ao alterar registro.';
+          FSQL.Clear;
+          FSQL.Add('UPDATE dispositivosconnected ');
+          FSQL.Add('SET hostname=:hostname, sistema_operacional_arq=:sistema_operacional_arq, iduser=:iduser, email=:email ');
+          FSQL.Add('WHERE id=:id ');
+          TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [R.Hostname, R.Sistema_operacional_arq, R.Iduser, R.Email, R.Id]);
+
+        end;
+
+    else
+      StrErr := 'DAO[DispositivoConected]: Status de inclusão ou alteração não determinado.';
+      Abort;
+    end;
+
+    StrErr := 'DAO[DispositivoConected]: Falha ao concluir transação.';
+    TDAO.GetInstance.Connection.Commit;
+
+    StrErr := '';
+    FInsertUpdate := TInsertUpdate.iuNone;
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TDispositivoConectedDAO.Upsert(var R: TDispositivoConectedModel; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[DispositivoConected]: Falha ao definir status.';
+    FSQL.Clear;
+    FSQL.Add('SELECT COALESCE(MAX(*), 0) ');
+    FSQL.Add('FROM dispositivosconnected ');
+    FSQL.Add('WHERE id=:id ');
+    if TDAO.GetInstance.Connection.ExecSQLScalar(FSQL.Text, [R.Id]) = 1 then
+      FInsertUpdate := TInsertUpdate.iuUpdate
+    else
+      FInsertUpdate := TInsertUpdate.iuInsert;
+
+    if not Post(R, StrErr) then
+      Abort;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TDispositivoConectedDAO.ValidDisp(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[DispositivoConected]: Impossível abrir query.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, hostname, sistema_operacional_arq, iduser, email ');
+    FSQL.Add('FROM dispositivosconnected ');
+    FSQL.Add('WHERE iduser=:iduser and hostname=:hostname and sistema_operacional_arq=:sistema_operacional_arq and email=:email ');
+
+    TDAO.GetInstance.FDQuery1.Close;
+    TDAO.GetInstance.FDQuery1.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[DispositivoConected]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery1);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+
+function TDispositivoConectedDAO.ValidEmail(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[DispositivoConected]: Impossível abrir query.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, hostname, sistema_operacional_arq, iduser, email ');
+    FSQL.Add('FROM dispositivosconnected ');
+    FSQL.Add('WHERE token=:token');
+
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[Tokens]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TDispositivoConectedDAO.Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    case AReport of
+      0:
+        begin
+          StrErr := 'DAO[DispositivoConected]: Impossível abrir query.';
+          FSQL.Clear;
+          FSQL.Add('SELECT id, hostname, sistema_operacional_arq, iduser ');
+          FSQL.Add('FROM dispositivosconnected ');
+          FSQL.Add('WHERE id=:id');
+        end;
+    else
+      StrErr := 'DAO[DispositivoConected]: Relatório não definido.';
+      Abort;
+    end;
+
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[DispositivoConected]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+end.

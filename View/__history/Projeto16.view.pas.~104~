@@ -1,0 +1,113 @@
+unit Projeto16.view;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.StdCtrls, Vcl.Mask,
+  Vcl.ExtCtrls, Vcl.DBCtrls;
+
+type
+  TForm1 = class(TForm)
+    DBEdit1: TDBEdit;
+    ButtonLogin: TButton;
+    Label1: TLabel;
+    DBEdit2: TDBEdit;
+    dsUser: TDataSource;
+    qUser: TFDMemTable;
+    qUserid: TIntegerField;
+    qUserlogin: TWideStringField;
+    qUsersenha: TWideStringField;
+    Query: TFDMemTable;
+    Queryid: TIntegerField;
+    Querylogin: TWideStringField;
+    Querysenha: TWideStringField;
+    dsQuery: TDataSource;
+    procedure FormCreate(Sender: TObject);
+    procedure ButtonLoginClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+
+    function Execute(out StrErr: string): Boolean;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses
+  Projeto16.Controller.Login, Projeto16.Controller.Token,
+  Projeto16.view.Modal2F, Projeto16.Controller.SendMail,
+  Projeto16.view.Deshboard;
+
+{$R *.dfm}
+
+procedure TForm1.ButtonLoginClick(Sender: TObject);
+var
+  AText: string;
+  AToken: String;
+  StrErr: string;
+begin
+  try
+    AText := '';
+    if Querylogin.AsString.IsEmpty then
+      AText := AText + 'Informe o login do usuário.' + sLinebreak;
+    if Querysenha.AsString.IsEmpty then
+      AText := AText + 'Informe a senha do usuário.' + sLinebreak;
+
+    StrErr := AText;
+    if not StrErr.IsEmpty then
+      Abort;
+
+    if not TLoginController.GetInstance.OpenUser(qUser, Querylogin.AsString, Querysenha.AsString, StrErr) then
+      Abort;
+
+    StrErr := 'Login ou senha inválidos.';
+    if (Querylogin.AsString <> qUserlogin.AsString) or (Querysenha.AsString <> qUsersenha.AsString) then
+      Abort;
+
+    AToken := TTokenController.GetInstance.Execute;
+
+    if not TSendMailController.GetInstance.Execute('contato@agilsistemas.inf.br', 'Codigo 2f', AToken, StrErr) then
+      Abort;
+
+    if not TfModal2F.GetInstance.Execute(AToken, StrErr) then
+      Abort;
+
+    StrErr := '';
+    ModalResult := mrOk;
+  except
+    ShowMessage(StrErr);
+    ModalResult := mrNone;
+  end;
+end;
+
+function TForm1.Execute(out StrErr: string): Boolean;
+begin
+  try
+    if ShowModal <> mrOk then
+      Abort;
+
+    StrErr := '';
+    Result := True;
+
+  except
+
+    Result := False;
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  Query.Close;
+  Query.CreateDataSet;
+  Query.Append;
+end;
+
+end.

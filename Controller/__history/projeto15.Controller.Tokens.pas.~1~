@@ -1,0 +1,105 @@
+unit projeto15.Controller.Tokens;
+
+interface
+
+uses
+  System.SysUtils, FireDAC.Comp.Client, Flex.Common.Types, projeto15.Model.Tokens, projeto15.DAO.Tokens;
+
+type
+
+  TTokensController = class
+  strict private
+    class var FInstance: TTokensController;
+  private
+    FTokensModel: TTokensModel;
+    FTokensDAO: TTokensDAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    class function GetInstance: TTokensController;
+    class procedure ReleaseInstance;
+
+    function Open(var Query: TFDMemTable; AParams: Array of variant; out StrErr: string): Boolean;
+    function New(out StrErr: string): Boolean;
+    function Edit(Token: string; out StrErr: string): Boolean;
+    function Delete(Token: string; out StrErr: string): Boolean;
+    function Post(out StrErr: string): Boolean;
+    function Upsert(out StrErr: string): Boolean;
+    function Report(var Query: TFDMemTable; AReport: Integer; AParams: Array of variant; out StrErr: string): Boolean;
+
+    property TokensModel: TTokensModel read FTokensModel write FTokensModel;
+  end;
+
+implementation
+
+{ TTokensController }
+
+constructor TTokensController.Create;
+begin
+  FTokensModel := TTokensModel.Create;
+  FTokensDAO := TTokensDAO.Create;
+end;
+
+destructor TTokensController.Destroy;
+begin
+  FreeAndNil(FTokensDAO);
+  FreeAndNil(FTokensModel);
+
+  inherited;
+end;
+
+class function TTokensController.GetInstance: TTokensController;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TTokensController.Create;
+  Result := FInstance;
+end;
+
+class procedure TTokensController.ReleaseInstance; 
+begin
+  if Assigned(FInstance) then
+    FInstance.Free;
+end;
+
+function TTokensController.Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Open(Query, AParams, StrErr);
+end;
+
+function TTokensController.New(out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.New(FTokensModel, StrErr);
+end;
+
+function TTokensController.Edit(Token: string; out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Edit(Token, FTokensModel, StrErr);
+end;
+
+function TTokensController.Delete(Token: string; out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Delete(Token, StrErr);
+end;
+
+function TTokensController.Post(out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Post(FTokensModel, StrErr);
+end;
+
+function TTokensController.Upsert(out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Upsert(FTokensModel, StrErr);
+end;
+
+function TTokensController.Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  Result := FTokensDAO.Report(Query, AReport, AParams, StrErr);
+end;
+
+initialization
+
+finalization
+
+ TTokensController.ReleaseInstance;
+end.

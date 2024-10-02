@@ -1,0 +1,60 @@
+object fModal2F: TfModal2F
+  Left = 0
+  Top = 0
+  Caption = 'fModal2F'
+  ClientHeight = 427
+  ClientWidth = 587
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  DesignSize = (
+    587
+    427)
+  TextHeight = 15
+  object Label1: TLabel
+    Left = 165
+    Top = 122
+    Width = 229
+    Height = 25
+    Caption = 'Insira o Token de Valida'#231#227'o'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Segoe UI'
+    Font.Style = []
+    ParentFont = False
+  end
+  object btValidar: TButton
+    Left = 128
+    Top = 230
+    Width = 137
+    Height = 42
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Caption = 'Validar'
+    TabOrder = 0
+    OnClick = btValidarClick
+  end
+  object TokenSelect: TMaskEdit
+    Left = 128
+    Top = 174
+    Width = 311
+    Height = 23
+    EditMask = 'AAAAAA'
+    MaxLength = 6
+    TabOrder = 1
+    Text = '      '
+  end
+  object btCancelar: TButton
+    Left = 304
+    Top = 230
+    Width = 135
+    Height = 42
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Caption = 'Cancelar'
+    TabOrder = 2
+    OnClick = btCancelarClick
+  end
+end

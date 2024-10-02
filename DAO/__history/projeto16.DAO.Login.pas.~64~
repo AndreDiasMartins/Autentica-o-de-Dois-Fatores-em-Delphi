@@ -1,0 +1,315 @@
+unit projeto16.DAO.Login;
+
+interface
+
+uses
+  projeto16.Model.Login, projeto16.DAO.Connection, Projeto14.Comuns.Types, FireDAC.Comp.Client, System.SysUtils, dialogs, System.Classes;
+
+const
+  acmModulo = '';
+
+type
+
+  TLoginDAO = class
+
+  private
+    FSQL: TStringList;
+    FInsertUpdate: TInsertUpdate;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    function Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function OpenUser(var Query: TFDMemTable; Login: String; Password: String; out StrErr: string): Boolean;
+    function validEmail(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+    function New(var R: TLoginModel; out StrErr: string): Boolean;
+    function Edit(Id: Integer; var R: TLoginModel; out StrErr: string): Boolean;
+    function Delete(Id: Integer; out StrErr: string): Boolean;
+    function Post(var R: TLoginModel; out StrErr: string): Boolean;
+    function Upsert(var R: TLoginModel; out StrErr: string): Boolean;
+    function Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+  end;
+
+implementation
+
+{ TLoginDAO }
+
+constructor TLoginDAO.Create;
+begin
+  FSQL := TStringList.Create;
+  FInsertUpdate := TInsertUpdate.iuNone;
+end;
+
+destructor TLoginDAO.Destroy;
+begin
+  FreeAndNil(FSQL);
+
+  inherited;
+end;
+
+function TLoginDAO.Open(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[Login]: Impossível abrir query.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, login, senha ');
+    FSQL.Add('FROM Login ');
+    FSQL.Add('WHERE Cast(id as text) like :id');
+
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[Login]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TLoginDAO.OpenUser(var Query: TFDMemTable; Login: String; Password: String; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[Login]: Não foi possível editar.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, login, senha ');
+    FSQL.Add('FROM Login ');
+    FSQL.Add('WHERE login=:login AND senha=:senha');
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, [Login, Password]);
+
+    StrErr := 'DAO[Login]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+
+end;
+
+function TLoginDAO.New(var R: TLoginModel; out StrErr: string): Boolean;
+begin
+  R.Id := 0;
+  R.Login := '';
+  R.Senha := '';
+
+  FInsertUpdate := TInsertUpdate.iuInsert;
+  Result := True;
+end;
+
+function TLoginDAO.Edit(Id: Integer; var R: TLoginModel; out StrErr: string): Boolean;
+begin
+  FInsertUpdate := TInsertUpdate.iuUpdate;
+  StrErr := '';
+  try
+    StrErr := 'DAO[Login]: Não foi possível editar.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, login, senha ');
+    FSQL.Add('FROM Login ');
+    FSQL.Add('WHERE id=:id ');
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, [Id]);
+
+    StrErr := 'DAO[Login]: Registro não encontrado.';
+    if TDAO.GetInstance.FDQuery.RecordCount = 0 then
+      Abort;
+
+    StrErr := 'DAO[Login]: Falha ao retornar campos.';
+    R.Id := TDAO.GetInstance.FDQuery.Fields[0].AsInteger;
+    R.Login := TDAO.GetInstance.FDQuery.Fields[1].AsString;
+    R.Senha := TDAO.GetInstance.FDQuery.Fields[2].AsString;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+
+end;
+
+function TLoginDAO.Delete(Id: Integer; out StrErr: string): Boolean;
+var
+  AText: string;
+begin
+  TDAO.GetInstance.Connection.StartTransaction;
+  try
+    StrErr := 'DAO[Login]: Falha ao executar SQL.';
+    FSQL.Clear;
+    FSQL.Add('DELETE FROM Login ');
+    FSQL.Add('WHERE id=:id ');
+    TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [Id]);
+
+    StrErr := 'DAO[Login]: Falha ao concluir transação.';
+    TDAO.GetInstance.Connection.Commit;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+
+end;
+
+function TLoginDAO.Post(var R: TLoginModel; out StrErr: string): Boolean;
+var
+  AText: string;
+begin
+  TDAO.GetInstance.Connection.StartTransaction;
+  try
+    case FInsertUpdate of
+
+      TInsertUpdate.iuInsert:
+        begin
+          StrErr := 'DAO[Login]: Falha ao incluir registro.';
+          FSQL.Clear;
+          FSQL.Add('INSERT INTO Login (login, senha) ');
+          FSQL.Add('VALUES (:login, :senha) ');
+          TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [R.Login, R.Senha]);
+
+        end;
+
+      TInsertUpdate.iuUpdate:
+        begin
+          StrErr := 'DAO[Login]: Falha ao alterar registro.';
+          FSQL.Clear;
+          FSQL.Add('UPDATE Login ');
+          FSQL.Add('SET login=:login, senha=:senha ');
+          FSQL.Add('WHERE id=:id ');
+          TDAO.GetInstance.Connection.ExecSQL(FSQL.Text, [R.Login, R.Senha, R.Id]);
+        end;
+
+    else
+      StrErr := 'DAO[Login]: Status de inclusão ou alteração não determinado.';
+      Abort;
+    end;
+
+    StrErr := 'DAO[Login]: Falha ao concluir transação.';
+    TDAO.GetInstance.Connection.Commit;
+
+    StrErr := '';
+    FInsertUpdate := TInsertUpdate.iuNone;
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TLoginDAO.Upsert(var R: TLoginModel; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[Login]: Falha ao definir status.';
+    FSQL.Clear;
+    FSQL.Add('SELECT COALESCE(MAX(*), 0) ');
+    FSQL.Add('FROM Login ');
+    FSQL.Add('WHERE id=:id ');
+    if TDAO.GetInstance.Connection.ExecSQLScalar(FSQL.Text, [R.Id]) = 1 then
+      FInsertUpdate := TInsertUpdate.iuUpdate
+    else
+      FInsertUpdate := TInsertUpdate.iuInsert;
+
+    if not Post(R, StrErr) then
+      Abort;
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      TDAO.GetInstance.Connection.RollBack;
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TLoginDAO.validEmail(var Query: TFDMemTable; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'DAO[Login]: Impossível abrir query.';
+    FSQL.Clear;
+    FSQL.Add('SELECT id, login ');
+    FSQL.Add('FROM login ');
+    FSQL.Add('WHERE email=:email');
+
+    TDAO.GetInstance.FDValidEmailDIsp.Close;
+    TDAO.GetInstance.FDValidEmailDIsp.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[Login]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDValidEmailDIsp);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+function TLoginDAO.Report(var Query: TFDMemTable; AReport: Integer; AParams: array of variant; out StrErr: string): Boolean;
+begin
+  try
+    case AReport of
+      0:
+        begin
+          StrErr := 'DAO[Login]: Impossível abrir query.';
+          FSQL.Clear;
+          FSQL.Add('SELECT id, login, senha ');
+          FSQL.Add('FROM Login ');
+          FSQL.Add('WHERE id=:id');
+        end;
+    else
+      StrErr := 'DAO[Login]: Relatório não definido.';
+      Abort;
+    end;
+
+    TDAO.GetInstance.FDQuery.Close;
+    TDAO.GetInstance.FDQuery.Open(FSQL.Text, AParams);
+
+    StrErr := 'DAO[Login]: Erro ao importar query.';
+    Query.Active := False;
+    Query.AppendData(TDAO.GetInstance.FDQuery);
+
+    StrErr := '';
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      StrErr := StrErr + sLineBreak + TDAO.GetInstance.TryExcept(E.Message);
+      Result := False;
+    end;
+  end;
+end;
+
+end.

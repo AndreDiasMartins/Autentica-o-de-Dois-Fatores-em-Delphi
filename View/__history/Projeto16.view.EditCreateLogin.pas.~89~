@@ -1,0 +1,164 @@
+unit Projeto16.view.EditCreateLogin;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, FireDAC.Stan.Intf,
+  FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS,
+  FireDAC.Phys.Intf, FireDAC.DApt.Intf, Vcl.Mask, Vcl.ExtCtrls, Vcl.DBCtrls,
+  Data.DB, FireDAC.Comp.DataSet, FireDAC.Comp.Client, System.RegularExpressions;
+
+type
+  TFormEditCreate = class(TForm)
+    lblSatusCD: TLabel;
+    Query: TFDMemTable;
+    Queryid: TIntegerField;
+    Querylogin: TWideStringField;
+    Querysenha: TWideStringField;
+    dsQuery: TDataSource;
+    Label1: TLabel;
+    DBEdit1: TDBEdit;
+    Label2: TLabel;
+    DBEdit2: TDBEdit;
+    ButtonCd: TButton;
+    QueryValidEmail: TFDMemTable;
+    DataSourceValidEmail: TDataSource;
+    QueryValidEmailid: TIntegerField;
+    QueryValidEmaillogin: TWideStringField;
+    CheckBox1: TCheckBox;
+    procedure ButtonCdClick(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
+  strict private
+    { Private declarations }
+    class var FInstance: TFormEditCreate;
+  public
+    { Public declarations }
+    class function GetInstance: TFormEditCreate;
+    class procedure ReleaseInstance;
+    function Execute(var Login: String; var password: String; out StrErr: string): Boolean;
+    function ValidarEmail(const AEmail: string): Boolean;
+    Function CheckEmail(const EmailCheck: String): Boolean;
+  end;
+
+var
+  FormEditCreate: TFormEditCreate;
+  EmailA: String;
+  AltEmail : Boolean;
+
+implementation
+
+uses
+  Projeto16.Controller.Login;
+
+{$R *.dfm}
+
+{ TFormEditCreate }
+procedure TFormEditCreate.ButtonCdClick(Sender: TObject);
+var
+  StrErr: String;
+  AText: String;
+begin
+  AText := '';
+  StrErr := '';
+  try
+
+    if Querylogin.AsString.IsEmpty then
+      AText := AText + 'Insira o campo Email' + sLineBreak
+    else if not ValidarEmail(Querylogin.AsString) then
+      AText := AText + 'Insira um email válido' + sLineBreak;
+
+    if not CheckEmail(Querylogin.AsString) then
+    begin
+      if not TLoginController.GetInstance.ValidEmail(QueryValidEmail, [Querylogin.AsString], StrErr) then
+        abort;
+
+      if (QueryValidEmaillogin.AsString <> '') then
+        AText := AText + 'Este Email já está sendo utilizado!' + sLineBreak;
+    end;
+
+    if Querysenha.AsString.IsEmpty then
+      AText := AText + 'Insira o campo Senha' + sLineBreak;
+
+    if AText <> '' then
+      abort;
+
+    ModalResult := mrOk;
+
+  except
+    on E: Exception do
+    begin
+      ModalResult := mrNone;
+      ShowMessage(AText + ' - ' + E.Message);
+    end;
+  end;
+end;
+
+procedure TFormEditCreate.CheckBox1Click(Sender: TObject);
+begin
+  if CheckBox1.Checked then
+    DBEdit2.PasswordChar := #0
+  else
+    DBEdit2.PasswordChar := '*';
+end;
+
+function TFormEditCreate.CheckEmail(const EmailCheck: String): Boolean;
+begin
+  if EmailA = EmailCheck then
+    result := True;
+end;
+
+function TFormEditCreate.Execute(var Login: String; var password: String; out StrErr: string): Boolean;
+begin
+  try
+    StrErr := 'Não foi possivel criar "CreateDataSet".';
+    Query.Close;
+    Query.CreateDataSet;
+    Query.Append;
+    Querylogin.AsString := Login;
+    EmailA := Login;
+    Querysenha.AsString := password;
+
+    StrErr := 'Usuario cancelo a operação.';
+    if ShowModal = mrCancel then
+      abort;
+
+    StrErr := 'Erro ao retornar valores.';
+    Login := Querylogin.AsString;
+    password := Querysenha.AsString;
+
+    ReleaseInstance;
+    StrErr := '';
+    result := True;
+
+  except
+    ReleaseInstance;
+    result := false;
+
+  end;
+
+end;
+
+class function TFormEditCreate.GetInstance: TFormEditCreate;
+begin
+  if not Assigned(FInstance) then
+    FInstance := TFormEditCreate.Create(niL);
+  result := FInstance;
+end;
+
+class procedure TFormEditCreate.ReleaseInstance;
+begin
+  if Assigned(FInstance) then
+    freeAndNil(FInstance);
+end;
+
+function TFormEditCreate.ValidarEmail(const AEmail: string): Boolean;
+const
+  EmailRegexPattern = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$';
+begin
+
+  result := TRegEx.IsMatch(AEmail, EmailRegexPattern);
+
+end;
+
+end.
