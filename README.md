@@ -31,6 +31,16 @@ Para que o sistema funcione corretamente, é necessário configurar a conexão c
 - **Port**: Por padrão, utilize `5432`.
 **Exemplo de configuração**: No meu exemplo, utilizei `localhost` como servidor, mas você pode especificar outro servidor, se necessário.
 
+# 5. Acesse `controller/projeto16.Controller.SendMail.pas` no seu projeto
+
+# 6. Preencha os campos Para configuração do email
+
+- **Smpt**: adicione o servidor smpt do seu email exemplo :  Outlook: smtp.office365.com (porta 587), Gmail: smtp.gmail.com (porta 587)
+- **Username**: insira seu email
+- **password**: insira sua senha
+- **porta**: 587 por padrao, mas consulte a documentação do seu servidor Smpt
+
+
 # Tables a serem criadas no banco Postgres
 
 # Table Login

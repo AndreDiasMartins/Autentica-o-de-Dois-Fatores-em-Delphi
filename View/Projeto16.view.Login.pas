@@ -73,9 +73,9 @@ begin
 
     AText := '';
     if Querylogin.AsString.IsEmpty then
-      AText := AText + 'Informe o login do usuário.' + sLinebreak;
+      AText := AText + 'Informe o login do usuï¿½rio.' + sLinebreak;
     if Querysenha.AsString.IsEmpty then
-      AText := AText + 'Informe a senha do usuário.' + sLinebreak;
+      AText := AText + 'Informe a senha do usuï¿½rio.' + sLinebreak;
 
     StrErr := AText;
     if not StrErr.IsEmpty then
@@ -84,7 +84,7 @@ begin
     if not TLoginController.GetInstance.OpenUser(qUser, Querylogin.AsString, Querysenha.AsString, StrErr) then
       Abort;
 
-    StrErr := 'Login ou senha inválidos.';
+    StrErr := 'Login ou senha invï¿½lidos.';
     if (Querylogin.AsString <> qUserlogin.AsString) or (Querysenha.AsString <> qUsersenha.AsString) then
       Abort;
 
@@ -100,7 +100,7 @@ begin
 
       AToken := TTokenController.GetInstance.Execute;
 
-      if not TSendMailController.GetInstance.Execute('contato@agilsistemas.inf.br', 'Codigo 2f', AToken, StrErr) then
+      if not TSendMailController.GetInstance.Execute(Querylogin.AsString, 'Codigo 2f', AToken, StrErr) then
         Abort;
 
       if not TfModal2F.GetInstance.Execute(AToken, StrErr) then

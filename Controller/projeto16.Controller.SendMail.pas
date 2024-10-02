@@ -68,16 +68,16 @@ begin
     begin
       IOHandler := FSSLHandler;
       UseTLS := utUseExplicitTLS;
-      Host := 'smtp.agilsistemas.inf.br'; // Substitua pelo seu servidor SMTP
+      Host := ''; // Substitua pelo seu servidor SMTP
       Port := 587; // Porta para TLS
-      Username := 'contato@agilsistemas.inf.br'; // Substitua pelo seu usuário
-      Password := 'abx5t8MuRh.ddzw'; // Substitua pela sua senha
+      Username := ''; // Substitua pelo seu usuï¿½rio
+      Password := ''; // Substitua pela sua senha
     end;
 
     StrErr := 'Falha ao preparar email.';
     with FEmailMessage do
     begin
-      From.Address := 'contato@agilsistemas.inf.br';
+      From.Address := ''; // Substitua pelo seu usuï¿½rio
       Recipients.EmailAddresses := ATo;
       Subject := ASubject;
       Body.Text := ABody;
